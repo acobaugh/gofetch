@@ -6,13 +6,20 @@ import (
 	"net/http"
 	"os"
 
+	flag "github.com/spf13/pflag"
+
 	"github.com/acobaugh/gofetch/pkg/transport"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	flag.Usage = usage
+
+	fQuiet := flag.BoolP("quiet", "q", false, "Suppress non-errors")
+	flag.Parse()
+
 	if len(os.Args) < 2 {
-		printHelp()
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -53,9 +60,11 @@ func main() {
 	}
 
 	if resp.StatusCode == http.StatusOK {
-		log.WithFields(tpFields).WithFields(respFields).Info("success")
+		if !*fQuiet {
+			log.WithFields(tpFields).WithFields(respFields).Info("success")
+		}
 	} else {
-		log.WithFields(tpFields).WithFields(respFields).Error("NOT success")
+		log.WithFields(tpFields).WithFields(respFields).Error("non-200 status")
 	}
 
 	// output := ioutil.Discard
@@ -66,6 +75,7 @@ func main() {
 
 }
 
-func printHelp() {
-	fmt.Printf("Usage: %s <url>", os.Args[0])
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s <url>\n", os.Args[0])
+	flag.PrintDefaults()
 }
