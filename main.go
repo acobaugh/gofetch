@@ -18,17 +18,16 @@ func main() {
 	fQuiet := flag.BoolP("quiet", "q", false, "Suppress non-errors")
 	flag.Parse()
 
-	if len(os.Args) < 2 {
+	if len(flag.Args()) < 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
+	url := flag.Arg(0)
 
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: true,
 		FullTimestamp: true,
 	})
-
-	url := os.Args[1]
 
 	tp := transport.NewTransport()
 	c := &http.Client{Transport: tp}
@@ -66,13 +65,6 @@ func main() {
 	} else {
 		log.WithFields(tpFields).WithFields(respFields).Error("non-200 status")
 	}
-
-	// output := ioutil.Discard
-	// if show {
-	// 	output = os.Stdout
-	// }
-	// io.Copy(output, resp.Body)
-
 }
 
 func usage() {
