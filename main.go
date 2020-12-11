@@ -1,21 +1,23 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
+	"github.com/acobaugh/gofetch/pkg/transport"
+	log "github.com/sirupsen/logrus"
+	flag "github.com/spf13/pflag"
 	"io/ioutil"
 	"net/http"
 	"os"
-
-	flag "github.com/spf13/pflag"
-
-	"github.com/acobaugh/gofetch/pkg/transport"
-	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 func main() {
 	flag.Usage = usage
 
 	fQuiet := flag.BoolP("quiet", "q", false, "Suppress non-errors")
+	fSkipVerify := flag.BoolP("skip-verify", "k", false, "Disable TLS verification")
+	fTimeout := flag.DurationP("timeout", "t", 30*time.Second, "Total request duration timeout")
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
@@ -29,8 +31,15 @@ func main() {
 		FullTimestamp: true,
 	})
 
-	tp := transport.NewTransport()
-	c := &http.Client{Transport: tp}
+	tlsConfig := tls.Config{
+		InsecureSkipVerify: *fSkipVerify,
+	}
+
+	tp := transport.NewTransport(&tlsConfig)
+	c := &http.Client{
+		Transport: tp,
+		Timeout:   *fTimeout,
+	}
 
 	resp, err := c.Get(url)
 

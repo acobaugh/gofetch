@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
@@ -15,7 +16,7 @@ type CustomTransport struct {
 	reqEnd    time.Time
 }
 
-func NewTransport() *CustomTransport {
+func NewTransport(tlsConfig *tls.Config) *CustomTransport {
 	tr := &CustomTransport{
 		dialer: &net.Dialer{
 			Timeout:   30 * time.Second,
@@ -26,6 +27,7 @@ func NewTransport() *CustomTransport {
 		Proxy:               http.ProxyFromEnvironment,
 		Dial:                tr.dial,
 		TLSHandshakeTimeout: 10 * time.Second,
+		TLSClientConfig:     tlsConfig,
 	}
 	return tr
 }
